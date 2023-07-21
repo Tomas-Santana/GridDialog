@@ -1,23 +1,31 @@
-class GridDialog extends HTMLDialogElement {
+class GridDialog extends HTMLElement {
     constructor(props) {
         super();
-        if (props !== undefined) {
-            console.log(props)
-            this.object = {};
-            this.applyProps(props)
-        }
-        this.style.flexDirection = 'column'
         
-        // setTimeout(() => {
-        //     console.log(this.object)
-        // }, 10);
+
+        this.style.position = 'fixed'
+        this.style.top = '0'
+        this.style.left = '0'
+
+        this.dialog = document.createElement('dialog')
+
+        if (props !== undefined) {
+            this.applyProps(props)
+            this.props = props
+        }
+        this.appendChild(this.dialog)
+        // console.log(this.dialog)
+
         
     }
     #iterateAndAsign(obj, target) {
+        
         Object.keys(obj).forEach(key => {
+            console.log(key, obj[key])
             if (typeof obj[key] === 'object' && obj[key] !== null) {
                 if (key === "style") {
-                    this.applyStyles(obj[key], this.style)
+                    console.log(`applyStyles to ${target}`)
+                    this.applyStyles(obj[key], target.style)
                     return
                 }
                 this.#iterateAndAsign(obj[key], target[key])
@@ -26,84 +34,105 @@ class GridDialog extends HTMLDialogElement {
         })
     }
     showModal() {
-        super.showModal()
-        this.style.display = 'flex'
-        this.style.flexDirection = 'column'
+        this.dialog.showModal()
+        this.dialog.style.gap = "20px"
+        this.dialog.style.display = 'flex'
+        this.dialog.style.flexDirection = 'column'
     }
     show() {
-        super.show()
-        this.style.display = 'flex'
-        this.style.flexDirection = 'column'
+        this.dialog.show()
+        this.dialog.style.display = 'flex'
+        this.dialog.style.gap = "20px"
+        this.dialog.style.flexDirection = 'column'
     }
-
-    addRow(elements, styles){
+    //document the funcyion with jsdoc
+    /**
+     * Adds a row to the dialog
+     * @param {[HTMLElement]} elements 
+     * @param {object} rowStyles styles for the row
+     * @param {[object]} elementStyles an array of styles for each element
+     */
+    addRow(elements, rowStyles={}, elementStyles=[]) {
         const row = document.createElement('div')
         row.style.display = 'flex'
-        this.applyStyles(styles, row.style)
-        elements.forEach(element => {
+    
+        this.applyStyles(rowStyles, row.style)
+        elements.forEach((element, i) => {
+            
+            if (elementStyles[i] === undefined) elementStyles[i] = {}
+            this.applyStyles(elementStyles[i], element.style)
             row.appendChild(element)
         });
-        this.appendChild(row)
+        console.log(this.dialog)
+        this.dialog.append(row)
+        
+        
+    }
+    addErrorRow(error, time=3000){
+        const errorStyles = {
+            color: 'red',
+            fontSize: '20px',
+            fontWeight: 'bold',
+            fontFamily: 'monospace',
+            display: 'flex',
+            justifyContent: 'center',
+        }
+        const row = document.createElement('div')
+
+        this.applyStyles(errorStyles, row.style)
+
+        row.innerHTML = error
+
+        this.dialog.appendChild(row)
+
+        setTimeout(() => this.deleteRow(this.dialog.children.length - 1), time)
+
+
+
     }
     deleteRow(rowNumber){
-        this.removeChild(this.children[rowNumber])
+        this.dialog.removeChild(this.children[rowNumber])
     }
     deleteElement(rowNumber, element){
-        this.children[rowNumber].removeChild(element)
+        this.dialog.children[rowNumber].removeChild(element)
     }
     clearAll(){
-        this.innerHTML = ''
+        this.dialog.innerHTML = ''
     }
     addToBody(){document.body.appendChild(this);}
-    getObject(){return this.object;}
+    getObject(){return this}
     hide() {
-        super.close()
-        this.style.display = 'none'
+        this.dialog.close()
     }
     applyStyles(styles, target) {
+        console.log(this.dialog)
         for (const key in styles) {
-            console.log(key)
-            target[key] = styles[key]
+            this.dialog.style[key] = styles[key]
         }
+        console.log( this.dialog)
+
     }
     applyProps(props) {
-
         this.#iterateAndAsign(props, this)        
-        this.object = Object.assign({}, this.object, props);
     }
 }
 
-customElements.define('grid-dialog', GridDialog, { extends: 'dialog' });
+customElements.define('grid-dialog', GridDialog);
 
 
-const gd = new GridDialog({hello: 'world'})
-
-const h1 = document.createElement('h1')
-h1.innerText = 'Hello World'
-const h11 = document.createElement('h1')
-h11.innerText = 'goodbuye World'
-
-const h2 = document.createElement('h2')
-h2.innerText = 'Hello World'
-
-gd.addRow([h1, h11], {gap: '10px', justifyContent: 'space-between', border: '1px solid black'})
-gd.addRow([h2], {})
-
-const button = document.createElement('button')
-button.innerText = 'click me'
-
-gd.addRow([button], {justifyContent: 'center'})
 
 
-gd.addToBody()
-gd.showModal()
 
-button.addEventListener('click', () => {
-    gd.hide()
-}
-)
 
-console.log(gd.getObject())
+
+
+
+
+
+
+
+
+
 
 
 

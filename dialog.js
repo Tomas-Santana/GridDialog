@@ -19,18 +19,14 @@ class GridDialog extends HTMLElement {
         
     }
     #iterateAndAsign(obj, target) {
-        
+        // recursive loop
+
         Object.keys(obj).forEach(key => {
-            console.log(key, obj[key])
-            if (typeof obj[key] === 'object' && obj[key] !== null) {
-                if (key === "style") {
-                    console.log(`applyStyles to ${target}`)
-                    this.applyStyles(obj[key], target.style)
-                    return
-                }
+            if (typeof obj[key] === 'object') {
                 this.#iterateAndAsign(obj[key], target[key])
+            } else {
+                target[key] = obj[key]
             }
-            target[key] = obj[key]
         })
     }
     showModal() {
@@ -43,6 +39,7 @@ class GridDialog extends HTMLElement {
         this.dialog.show()
         this.dialog.style.display = 'flex'
         this.dialog.style.gap = "20px"
+        this.dialog.style.width = 'max-content'
         this.dialog.style.flexDirection = 'column'
     }
     //document the funcyion with jsdoc
@@ -51,7 +48,7 @@ class GridDialog extends HTMLElement {
      * @param {[HTMLElement]} elements 
      * @param {object} rowStyles styles for the row
      * @param {[object]} elementStyles an array of styles for each element
-     */
+    */
     addRow(elements, rowStyles={}, elementStyles=[]) {
         const row = document.createElement('div')
         row.style.display = 'flex'
@@ -64,7 +61,7 @@ class GridDialog extends HTMLElement {
             row.appendChild(element)
         });
         console.log(this.dialog)
-        this.dialog.append(row)
+        this.dialog.appendChild(row)
         
         
     }
@@ -86,14 +83,19 @@ class GridDialog extends HTMLElement {
         this.dialog.appendChild(row)
 
         setTimeout(() => this.deleteRow(this.dialog.children.length - 1), time)
-
-
-
+        
+        
+        
     }
     deleteRow(rowNumber){
-        this.dialog.removeChild(this.children[rowNumber])
+        if (rowNumber > this.dialog.children.length - 1) {
+            this.addErrorRow("No existe esa fila")
+            return
+        }
+        this.dialog.removeChild(this.dialog.children[rowNumber])
     }
     deleteElement(rowNumber, element){
+        
         this.dialog.children[rowNumber].removeChild(element)
     }
     clearAll(){
@@ -101,16 +103,15 @@ class GridDialog extends HTMLElement {
     }
     addToBody(){document.body.appendChild(this);}
     getObject(){return this}
+    applyStyles(styles, target) {
+        Object.keys(styles).forEach(key => {
+            target[key] = styles[key]
+        })
+        
+    }
     hide() {
         this.dialog.close()
-    }
-    applyStyles(styles, target) {
-        console.log(this.dialog)
-        for (const key in styles) {
-            this.dialog.style[key] = styles[key]
-        }
-        console.log( this.dialog)
-
+        this.dialog.style.display = 'none'
     }
     applyProps(props) {
         this.#iterateAndAsign(props, this)        
